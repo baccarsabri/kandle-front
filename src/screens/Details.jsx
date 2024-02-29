@@ -173,7 +173,7 @@ export default function Details() {
                 {selected?.location_name || "N/A"}
               </div>
               <div className="content__container__content__info__icons">
-                <a href={`https://www.${selected?.linkedin_url}`}>
+                <a href={`https://www.${selected?.linkedin_url}`} target="_blank">
                   <svg
                     viewBox="0 0 18 18"
                     fill="none"
