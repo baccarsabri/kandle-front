@@ -27,6 +27,16 @@ export default function Details() {
   };
   useEffect(() => {
     setState(prevState);
+    console.log(selected);
+    const report = sessionStorage.getItem(selected.id);
+    if (!selected.report && report) {
+      setSelected(prevSelected => {
+        const updatedSelected = { ...prevSelected, report: [report] }; // Add report=[] to the selected item
+        return updatedSelected;
+      });
+
+
+    }
   }, [prevState, selected]);
   const generate_report = async () => {
     try {
@@ -40,6 +50,9 @@ export default function Details() {
         const updatedSelected = { ...prevSelected, report: [response.data] }; // Add report=[] to the selected item
         return updatedSelected;
       });
+
+      const saveOnStorage = sessionStorage.setItem(selected.id, response.data);
+
       // Additional logic if needed
 
     } catch (error) {
@@ -51,11 +64,13 @@ export default function Details() {
   };
 
   let orderArray = state?.ranking?.ranked_candidates?.ids;
+  const uniqueExperiences = new Set();
+  const uniqueEducations = new Set();
 
   let sortedData = state.json.sort((a, b) => {
-    let aIndex = orderArray.indexOf(a.fullName);
-    let bIndex = orderArray.indexOf(b.fullName);
-    return aIndex - bIndex;
+    //let aIndex = orderArray.indexOf(a.fullName);
+    //  let bIndex = orderArray.indexOf(b.fullName);
+    //  return aIndex - bIndex;
   });
 
   const handleDownload = () => {
@@ -119,9 +134,9 @@ export default function Details() {
             sortedData.map((item, index) => (
               <DetailSidebarItem
                 key={index}
-                fullName={item.fullName}
+                fullName={item.full_name}
                 item={item}
-                active={selected?.fullName === item.fullName}
+                active={selected?.full_name === item.full_name}
                 onChange={setSelected}
                 setRankIndex={setRankIndex}
                 index={index}
@@ -149,16 +164,16 @@ export default function Details() {
           <div className="content__container__profile">
             <div className="content__container__content__info">
               <div className="content__container__content__info__heading">
-                {selected?.fullName || "N/A"}
+                {selected?.full_name || "N/A"}
               </div>
               <div className="content__container__content__info__designation">
-                {selected?.title || "N/A"}
+                {selected?.job_title || "N/A"}
               </div>
               <div className="content__container__content__info__location">
-                {selected?.location || "N/A"}
+                {selected?.location_name || "N/A"}
               </div>
               <div className="content__container__content__info__icons">
-                <a href={selected?.url}>
+                <a href={`https://www.${selected?.linkedin_url}`}>
                   <svg
                     viewBox="0 0 18 18"
                     fill="none"
@@ -236,14 +251,19 @@ export default function Details() {
               <div className="content__container__content__experience__heading">
                 Experiences
               </div>
-              {selected?.member_experience_collection?.length === 0 ? (
+              {selected?.experience?.length === 0 ? (
                 <div>No Experience</div>
               ) : (
-                selected?.member_experience_collection
-                  .filter((item) => item.deleted === 0)
-                  .reverse()
+                selected?.experience
+                  .filter((item) => item.company)
                   .map((item, index) => (
-                    <ExperienceItem item={item} key={index} />
+                    <>
+                      <ExperienceItem item={item} key={index} />
+                    </>
+
+
+
+
                   ))
               )}
             </div>
@@ -251,14 +271,15 @@ export default function Details() {
               <div className="content__container__content__experience__heading">
                 Education
               </div>
-              {selected?.member_education_collection?.length === 0 ? (
+              {selected?.education?.length === 0 ? (
                 <div>No Education</div>
               ) : (
 
-                selected?.member_education_collection
-                  .filter((item) => item.deleted === 0)
+                selected?.education
+                  .filter((item) => item.school)
                   .map((item, index) => (
                     <EducationItem item={item} key={index} />
+
 
 
                   ))
@@ -269,7 +290,8 @@ export default function Details() {
 
           </div>
         </div>
-      )}
+      )
+      }
     </div>
   );
 }

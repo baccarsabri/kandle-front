@@ -9,6 +9,8 @@ import { toast } from "react-toastify";
 import { useLocation } from "react-router-dom";
 import useQuery from "@utils/useQuery";
 import axiosExternal from "@utils/externalAxios";
+import { NavLink } from "react-router-dom";
+
 
 export default function Index() {
   const { state: prevState } = useLocation();
@@ -74,6 +76,7 @@ export default function Index() {
 
   return (
     <div className="content__container">
+      <a href="https://docs.kandel.ai/" target="_blank" className="sidebar__top__delete" style={{ width: '150px', height: "35px", position: 'absolute', top: 20, right: 10, textDecoration: 'none', justifyContent: 'center', backgroundColor: '#5167f6', borderRadius: '5px' }}>Documentation</a>
       <div className="content__container__content">
         {data?.length > 0 ? (
           data?.map((item, index) => (

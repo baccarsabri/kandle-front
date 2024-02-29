@@ -17,6 +17,7 @@ export default function ResultEntry({ data, search, index }) {
 
 
   useEffect(() => {
+    console.log("data.json", data)
     if (data.json !== null && data.json !== undefined) return;
 
 
@@ -25,29 +26,40 @@ export default function ResultEntry({ data, search, index }) {
         setProcessing(true);
         let res = null;
         let location = null;
+        let role = null;
         const response = await axios.get(`/search/keyword/${searchText}`);
         const keywordData = response.data;
+        console.log(keywordData);
 
 
         const lines = keywordData.split('\n');
+        console.log("api retuen :: ", lines)
 
         lines.forEach(line => {
           if (line.startsWith(" Location:")) {
             location = line.substring(10).trim();
           }
+          if (line.startsWith("Position:")) {
+            role = line.substring(10).trim();
+          }
+          if (line.startsWith("Role:")) {
+            role = line.substring(5).trim();
+          }
 
         });
 
-        if (location === null) {
+        console.log("param1::", role)
+        console.log("param2:", location);
+        if (location === null || role == null) {
           // setError("Cannot split the sentence.");
-          res = await axios.post("/scrape/getData", {
-            title: searchText,
-            resultId: data._id,
-          });
+          // res = await axios.post("/scrape/getData", {
+          //  title: role,     //searchText,
+          //  resultId: data._id,
+          //  });
         } else {
-          let updatedSearchText = searchText.replace(`in ${location}`, '');
+          // let updatedSearchText = searchText.replace(`in ${location}`, '');
           res = await axios.post("/scrape/getData", {
-            title: updatedSearchText,
+            title: role,
             city: location,
             resultId: data._id,
           });
@@ -92,7 +104,7 @@ export default function ResultEntry({ data, search, index }) {
           onConfirm={handleClear}
         />
       ) : null}
-      <div className="content__container__content__entry">
+      <div className="content__container__content__entry" style={{ marginTop: '40px' }}>
         <div className="content__container__content__entry__top">
           <div className="content__container__content__entry__title">
             Result {index + 1} - {data.json?.length} candidates
