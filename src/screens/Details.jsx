@@ -21,8 +21,8 @@ export default function Details() {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [forceRender, setForceRender] = useState(0);
-  const [skills, setSkills] = useState(false);
-  const [email, setEmail] = useState(false);
+  const [skills, setSkills] = useState(null);
+  const [email, setEmail] = useState(sessionStorage.getItem(`email${selected.id}`));
   const containerStyle = {
     display: 'flex',
     justifyContent: 'center',
@@ -36,7 +36,8 @@ export default function Details() {
   };
   useEffect(() => {
     setState(prevState);
-    console.log(selected);
+    setEmail(sessionStorage.getItem(`email${selected.id}`));
+    setSkills(JSON.parse(sessionStorage.getItem(`skills${selected.id}`)));
     const report = sessionStorage.getItem(selected.id);
     if (!selected.report && report) {
       setSelected(prevSelected => {
@@ -47,13 +48,25 @@ export default function Details() {
 
     }
   }, [prevState, selected]);
-  const generateSkils = () => {
-    console.log("ok")
-    setSkills(true);
+  const generateSkils = async () => {
+    const averageExperience = Number.isInteger(selected.inferred_years_experience / selected.experience.length) ?
+      (selected.inferred_years_experience / selected.experience.length).toFixed(0) :
+      (selected.inferred_years_experience / selected.experience.length).toFixed(1);
+    const SkillsObject = {
+      experience: selected.inferred_years_experience,
+      avg: averageExperience,
+      salary: selected.inferred_salary,
+      skills: selected.skills
+    }
+    await sessionStorage.setItem(`skills${selected.id}`, JSON.stringify(SkillsObject))
+    setSkills(JSON.parse(sessionStorage.getItem(`skills${selected.id}`)));
+    console.log(skills)
 
   }
   const showEmail = () => {
-    setEmail(true);
+    sessionStorage.setItem(`email${selected.id}`, selected.emails[0].address)
+    setEmail(sessionStorage.getItem(`email${selected.id}`));
+    console.log(email);
   }
   const generate_report = async () => {
     try {
@@ -204,26 +217,24 @@ export default function Details() {
           {skills && (
             <div>
               <div className="content__container__content__experience__heading">
-                Experience :  <span style={{ fontSize: '14px', color: 'black' }}>{selected.inferred_years_experience} years</span>
+                Experience :  <span style={{ fontSize: '14px', color: 'black' }}>{skills.experience} years</span>
               </div>
               <div className="content__container__content__experience__heading">
                 Average Tenure :   <span style={{ fontSize: '14px', color: 'black' }}>
-                  {Number.isInteger(selected.inferred_years_experience / selected.experience.length) ?
-                    (selected.inferred_years_experience / selected.experience.length).toFixed(0) :
-                    (selected.inferred_years_experience / selected.experience.length).toFixed(1)} years
+                  {skills.avg} years
                 </span>
               </div>
               <div className="content__container__content__experience__heading">
-                Salary :  <span style={{ fontSize: '14px', color: 'black' }}> {formatSalaryRange(selected.inferred_salary)} </span>
+                Salary :  <span style={{ fontSize: '14px', color: 'black' }}> {formatSalaryRange(skills.salary)} </span>
               </div>
 
               <div className="content__container__content__experience__heading">
                 Top Skills
               </div>
 
-              {selected.skills && selected.skills.length > 0 ? (
+              {skills.skills && selected.skills.length > 0 ? (
                 <ul style={{ listStyleType: 'none', paddingLeft: 0, display: 'flex', flexDirection: 'column', fontWeight: 'bold' }}>
-                  {selected.skills.slice(0, 10).map((skill, index) => (
+                  {skills.skills.slice(0, 10).map((skill, index) => (
                     <li key={index} style={{ margin: '5px 0' }}>{skill}</li>
                   ))}
                 </ul>
@@ -308,10 +319,8 @@ export default function Details() {
                   >
                     Reveal Email
                   </button>
-                  {email && selected.emails.length > 0 ? (<span className="content__container__content__info__location">{selected.emails[0].address} </span>) : (
-                    <span className="content__container__content__info__location">Email not available </span>
-                  )}
-
+                  {email && selected.emails.length > 0 && (<span className="content__container__content__info__location">{email} </span>)}
+                  {email && selected.emails.length == 0 && (<span className="content__container__content__info__location">Email not available </span>)}
                 </div>
               </div>
               <div className="content__container__report">
