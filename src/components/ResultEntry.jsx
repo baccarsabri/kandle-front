@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 import { mutate } from "swr";
 import { toast } from "react-toastify";
 
-export default function ResultEntry({ data, search, index }) {
+export default function ResultEntry({ data, search, index, results, setValueResultToOne }) {
   const [deleteConfirmation, setDeleteConfirmation] = useState(false);
   const [processing, setProcessing] = useState(false);
   const searchText = search.query;
@@ -20,9 +20,15 @@ export default function ResultEntry({ data, search, index }) {
     console.log("data.json", data)
     if (data.json !== null && data.json !== undefined) return;
 
-
+    const handleUpdateValue = () => {
+      setValueResultToOne();
+    };
     async function runQuery() {
       try {
+        if (results == 0) {
+          handleUpdateValue();
+          results = 1;
+        }
         setProcessing(true);
         let res = null;
         let location = null;
@@ -48,8 +54,8 @@ export default function ResultEntry({ data, search, index }) {
 
         });
 
-        console.log("param1::", role)
-        console.log("param2:", location);
+        console.log("param1::", location)
+
         if (location === null || role == null) {
           // setError("Cannot split the sentence.");
           // res = await axios.post("/scrape/getData", {
@@ -58,12 +64,13 @@ export default function ResultEntry({ data, search, index }) {
           //  });
         } else {
           // let updatedSearchText = searchText.replace(`in ${location}`, '');
+
           res = await axios.post("/scrape/getData", {
             title: role,
             city: location,
             resultId: data._id,
+            results: results
           });
-
 
         }
         //   res = await axios.post("/scrape/getData", {

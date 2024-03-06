@@ -13,6 +13,18 @@ import { NavLink } from "react-router-dom";
 
 
 export default function Index() {
+  const min = 0;
+  const max = 50;
+
+  const [valueResults, setValue] = useState(1);
+
+  const handleChange = event => {
+    const value = Math.max(min, Math.min(max, Number(event.target.value)));
+    setValue(value);
+  };
+  const setValueResultToOne = () => {
+    setValue(1);
+  }
   const { state: prevState } = useLocation();
   const [state, setState] = useState(prevState);
 
@@ -85,6 +97,8 @@ export default function Index() {
               data={item}
               search={state}
               index={index}
+              results={valueResults}
+              setValueResultToOne={setValueResultToOne}
             />
           ))
         ) : (
@@ -103,7 +117,24 @@ export default function Index() {
         )}
       </div>
       <div className="content__container__bottom">
+        <label style={{ position: 'absolute', left: '9%', bottom: '10%', padding: '1.5em' }}>Results : </label>
+        <input
+          type="text"
+          style={{
+            display: 'flex',
+            borderRadius: '5px',
+            padding: '1.5em',
+            width: '10%',
+            border: 'none',
+            outline: 'none',
+          }}
+          placeholder="1"
+          value={valueResults}
+          onChange={handleChange}
+        />
+
         <div className="content__container__bottom__content">
+
           {state.query === undefined || state.query === null ? (
             <button className="content__container__bottom__upload">
               <input
@@ -138,6 +169,7 @@ export default function Index() {
                 : "Upload new job description"}
             </button>
           ) : null}
+
           <form
             onSubmit={handleSubmit}
             className="content__container__bottom__search"
@@ -145,6 +177,7 @@ export default function Index() {
               backgroundColor: processing ? "#fafafa" : null,
             }}
           >
+
             <input
               className="content__container__bottom__search__input"
               type="text"
