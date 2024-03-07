@@ -323,7 +323,7 @@ export default function Details() {
                   {email && selected.emails.length == 0 && (<span className="content__container__content__info__location">Email not available </span>)}
                 </div>
               </div>
-              <div className="content__container__report">
+              <div className="content__container__report" style={{ paddingRight: '25%' }}>
                 {selected.report && selected.report[0]
                   ?.split("\n\n")
                   .map((item, index) => (
@@ -361,7 +361,7 @@ export default function Details() {
                   ))}
               </div>
               {selected?.summary ? (
-                <div className="content__container__content__experience">
+                <div className="content__container__content__experience" style={{ paddingTop: '2%' }}>
                   <div className="content__container__content__experience__heading">
                     About
                   </div>
