@@ -19,7 +19,7 @@ export default function ResultEntry({ data, search, index, results, setValueResu
 
   const handleSearchInsights = () => {
     SearchInsights()
-    set
+
   }
   useEffect(() => {
     console.log("data.json", data.json)

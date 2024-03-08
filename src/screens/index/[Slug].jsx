@@ -17,18 +17,29 @@ export default function Index() {
   const max = 50;
 
   const [valueResults, setValue] = useState(1);
-  const [searchData, setSearchData] = useState(null);
-  const [searchInsightsLoading, setSearchInsightsLoading] = useState(false)
-
+  const [searchData, setSearchData] = useState([]);
+  const [itemSearchData, setItemSearchData] = useState(null);
+  const [searchInsightsLoading, setSearchInsightsLoading] = useState(false);
+  const { state: prevState } = useLocation();
+  const [state, setState] = useState(prevState);
   const handleChange = event => {
     const value = Math.max(min, Math.min(max, Number(event.target.value)));
     setValue(value);
   };
+  useEffect(() => {
+    if (searchData.length > 0 && state) {
+      const matchedElement = searchData.find(item => item.key == state._id);
+      console.log(matchedElement);
+      setItemSearchData(matchedElement);
+
+    }
+
+
+  }, [state, searchData])
   const setValueResultToOne = () => {
     setValue(1);
   }
-  const { state: prevState } = useLocation();
-  const [state, setState] = useState(prevState);
+
 
   useLayoutEffect(() => {
     setState(prevState);
@@ -46,9 +57,16 @@ export default function Index() {
     const res = await axios.post("/scrape/SearchInsights",
       { data: data[0].json }
     );
-    setSearchData(res.data);
+    const objectOfSearchData = {
+      key: state._id,
+      value: res.data
+
+    }
+    const newData = [...searchData, objectOfSearchData];
+    setSearchData(newData);
     setSearchInsightsLoading(false);
-    console.log(res);
+
+
 
   }
 
@@ -117,13 +135,13 @@ export default function Index() {
                 SearchInsights={SearchInsights}
                 loading={searchInsightsLoading}
               />
-              {searchData && (
+              {(itemSearchData && itemSearchData.key == state._id) && (
                 <div className="content__container__content__under_entry">
                   <ul style={{ listStyleType: 'none' }}>
                     <li><div className="content__container__content__entry__title" >
                       Number of Results :
                       <span className="content__container__content__entry__status__complete">
-                        &nbsp;{searchData.analysis["Number of candidates"]} condidates
+                        &nbsp;{itemSearchData.value.analysis["Number of candidates"]} condidates
                       </span>
 
                     </div>
@@ -133,7 +151,7 @@ export default function Index() {
                       <div className="content__container__content__entry__title">
                         Average Experience :
                         <span className="content__container__content__entry__status__complete">
-                          &nbsp; {searchData.analysis["Average experience"]} years
+                          &nbsp; {itemSearchData.value.analysis["Average experience"]} years
                         </span>
 
                       </div>
@@ -143,14 +161,14 @@ export default function Index() {
                       <div className="content__container__content__entry__title" >
                         Average Salary :
                         <span className="content__container__content__entry__status__complete">
-                          &nbsp;${Math.ceil(searchData.analysis["Average salary"])}
+                          &nbsp;${Math.ceil(itemSearchData.value.analysis["Average salary"])}
                         </span>
 
                       </div>
                     </li>
                     <li style={{ paddingTop: '25px' }}>
                       <div className="content__container__content__under_entry">
-                        <img src={`data:image/png;base64, ${searchData.image}`} alt="Red dot" className="image-container" />
+                        <img src={`data:image/png;base64, ${itemSearchData.value.image}`} alt="Red dot" className="image-container" />
 
                       </div>
                     </li>
@@ -158,10 +176,10 @@ export default function Index() {
                   <div className="content__container__content__entry__title">
                     Top Skills :
                     <span >
-                      &nbsp;  {searchData.analysis["Most popular skills"] && searchData.analysis["Most popular skills"].length > 0 ? (
+                      &nbsp;  {itemSearchData.value.analysis["Most popular skills"] && itemSearchData.value.analysis["Most popular skills"].length > 0 ? (
                         <div style={{ listStyleType: 'none', display: 'flex', flexDirection: 'column', fontWeight: 'bold', }}>
 
-                          {searchData.analysis["Most popular skills"].slice(0, 10).map((skill, index) => (
+                          {itemSearchData.value.analysis["Most popular skills"].slice(0, 10).map((skill, index) => (
                             <span key={index} className="content__container__content__entry__status__complete" style={{ padding: '05px' }}>{skill}</span>
                           ))}
                         </div>
