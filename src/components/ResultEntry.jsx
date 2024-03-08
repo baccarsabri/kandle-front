@@ -8,16 +8,19 @@ import dayjs from "dayjs";
 import { mutate } from "swr";
 import { toast } from "react-toastify";
 
-export default function ResultEntry({ data, search, index, results, setValueResultToOne }) {
+export default function ResultEntry({ data, search, index, results, setValueResultToOne, SearchInsights, loading }) {
   const [deleteConfirmation, setDeleteConfirmation] = useState(false);
   const [processing, setProcessing] = useState(false);
   const searchText = search.query;
   const [searchData, setSearchData] = useState(null);
-  const [searchInsightsLoading, setSearchInsightsLoading] = useState(false);
+
   data.keyword = searchText;
 
 
-
+  const handleSearchInsights = () => {
+    SearchInsights()
+    set
+  }
   useEffect(() => {
     console.log("data.json", data.json)
     if (data.json !== null && data.json !== undefined) return;
@@ -25,6 +28,7 @@ export default function ResultEntry({ data, search, index, results, setValueResu
     const handleUpdateValue = () => {
       setValueResultToOne();
     };
+
     async function runQuery() {
       try {
         if (results == 0) {
@@ -91,16 +95,7 @@ export default function ResultEntry({ data, search, index, results, setValueResu
     }
     runQuery();
   }, []);
-  const SearchInsights = async () => {
-    setSearchInsightsLoading(true)
-    const res = await axios.post("/scrape/SearchInsights",
-      { data: data.json }
-    );
-    setSearchData(res.data);
-    setSearchInsightsLoading(false);
-    console.log(res);
 
-  }
   const handleClear = async () => {
     setProcessing(true);
     try {
@@ -129,12 +124,12 @@ export default function ResultEntry({ data, search, index, results, setValueResu
             <div className="content__container__content__entry__title">
               Result {index + 1} - {data.json?.length} candidates
               <button
-                onClick={SearchInsights}
+                onClick={handleSearchInsights}
                 className="sidebar__top__delete"
                 style={{ width: '130px', marginTop: '10px', marginRight: '20px', marginLeft: '10px' }}
 
               >
-                {searchInsightsLoading ? "loading..." : "Search Insights"}
+                {loading ? "loading..." : "Search Insights"}
               </button>
             </div>
 
@@ -255,18 +250,7 @@ export default function ResultEntry({ data, search, index, results, setValueResu
 
               <div className="content__container__content__entry__title" style={{ position: 'absolute', top: '24%', right: '18%' }} >
 
-                <span >
-                  &nbsp;  {searchData.analysis["Most popular skills"] && searchData.analysis["Most popular skills"].length > 0 ? (
-                    <ul style={{ listStyleType: 'none', display: 'flex', flexDirection: 'column', fontWeight: 'bold' }}>
-                      <li>Top Skills :</li>
-                      {searchData.analysis["Most popular skills"].slice(0, 10).map((skill, index) => (
-                        <li key={index} className="content__container__content__entry__status__complete">{skill}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <span>No skills.</span>
-                  )}
-                </span>
+
 
               </div>
             </div>

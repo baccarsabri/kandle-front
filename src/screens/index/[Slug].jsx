@@ -17,6 +17,8 @@ export default function Index() {
   const max = 50;
 
   const [valueResults, setValue] = useState(1);
+  const [searchData, setSearchData] = useState(null);
+  const [searchInsightsLoading, setSearchInsightsLoading] = useState(false)
 
   const handleChange = event => {
     const value = Math.max(min, Math.min(max, Number(event.target.value)));
@@ -33,11 +35,22 @@ export default function Index() {
   }, [prevState]);
 
   const { data } = useQuery(`/result/search/${state._id}`);
+  console.log("data:::", data)
 
   const [searchText, setSearchText] = useState(state.query ? state.query : "");
   const [fileUploaded, setFileUploaded] = useState(
     state.type ? state.type === "description" : false
   );
+  const SearchInsights = async () => {
+    setSearchInsightsLoading(true)
+    const res = await axios.post("/scrape/SearchInsights",
+      { data: data[0].json }
+    );
+    setSearchData(res.data);
+    setSearchInsightsLoading(false);
+    console.log(res);
+
+  }
 
   useEffect(() => {
     setSearchText(state.query ? state.query : "");
@@ -91,30 +104,98 @@ export default function Index() {
       <a href="https://docs.kandel.ai/" target="_blank" className="sidebar__top__delete" style={{ width: '150px', height: "35px", position: 'absolute', top: 20, right: 10, textDecoration: 'none', justifyContent: 'center', backgroundColor: '#5167f6', borderRadius: '5px' }}>Documentation</a>
       <div className="content__container__content">
         {data?.length > 0 ? (
+
           data?.map((item, index) => (
-            <ResultEntry
-              key={item._id}
-              data={item}
-              search={state}
-              index={index}
-              results={valueResults}
-              setValueResultToOne={setValueResultToOne}
-            />
+            <>
+              <ResultEntry
+                key={item._id}
+                data={item}
+                search={state}
+                index={index}
+                results={valueResults}
+                setValueResultToOne={setValueResultToOne}
+                SearchInsights={SearchInsights}
+                loading={searchInsightsLoading}
+              />
+              {searchData && (
+                <div className="content__container__content__under_entry">
+                  <ul style={{ listStyleType: 'none' }}>
+                    <li><div className="content__container__content__entry__title" >
+                      Number of Results :
+                      <span className="content__container__content__entry__status__complete">
+                        &nbsp;{searchData.analysis["Number of candidates"]} condidates
+                      </span>
+
+                    </div>
+
+                    </li>
+                    <li>
+                      <div className="content__container__content__entry__title">
+                        Average Experience :
+                        <span className="content__container__content__entry__status__complete">
+                          &nbsp; {searchData.analysis["Average experience"]} years
+                        </span>
+
+                      </div>
+                    </li>
+
+                    <li>
+                      <div className="content__container__content__entry__title" >
+                        Average Salary :
+                        <span className="content__container__content__entry__status__complete">
+                          &nbsp;${Math.ceil(searchData.analysis["Average salary"])}
+                        </span>
+
+                      </div>
+                    </li>
+                    <li style={{ paddingTop: '25px' }}>
+                      <div className="content__container__content__under_entry">
+                        <img src={`data:image/png;base64, ${searchData.image}`} alt="Red dot" className="image-container" />
+
+                      </div>
+                    </li>
+                  </ul>
+                  <div className="content__container__content__entry__title">
+                    Top Skills :
+                    <span >
+                      &nbsp;  {searchData.analysis["Most popular skills"] && searchData.analysis["Most popular skills"].length > 0 ? (
+                        <div style={{ listStyleType: 'none', display: 'flex', flexDirection: 'column', fontWeight: 'bold', }}>
+
+                          {searchData.analysis["Most popular skills"].slice(0, 10).map((skill, index) => (
+                            <span key={index} className="content__container__content__entry__status__complete" style={{ padding: '05px' }}>{skill}</span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span>No skills.</span>
+                      )}
+                    </span>
+                  </div>
+
+
+
+
+
+                </div>
+              )}
+
+            </>
+
           ))
-        ) : (
-          <>
-            <div className="content__container__content__heading">
-              {processing
-                ? "Please Wait"
-                : "Let us help you find the best People"}
-            </div>
-            <div className="content__container__content__text">
-              {processing
-                ? "We are scraping the web for you"
-                : "Please start writing your query"}
-            </div>
-          </>
-        )}
+        )
+          : (
+            <>
+              <div className="content__container__content__heading">
+                {processing
+                  ? "Please Wait"
+                  : "Let us help you find the best People"}
+              </div>
+              <div className="content__container__content__text">
+                {processing
+                  ? "We are scraping the web for you"
+                  : "Please start writing your query"}
+              </div>
+            </>
+          )}
       </div>
       <div className="content__container__bottom">
         <label style={{ position: 'absolute', left: '9%', bottom: '10%', padding: '1.5em' }}>Results : </label>
