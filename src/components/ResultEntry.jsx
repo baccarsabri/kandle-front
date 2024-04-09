@@ -39,54 +39,70 @@ export default function ResultEntry({ data, search, index, results, setValueResu
         let res = null;
         let location = null;
         let role = null;
-        const response = await axios.get(`/search/keyword/${searchText}`);
+        const response = await axios.post(`/search/keyword/${searchText}`, { resultId: data._id });
         const keywordData = response.data;
         console.log(keywordData);
-
-
-        const lines = keywordData.split('\n');
-        console.log("api retuen :: ", lines)
-
-        lines.forEach(line => {
-          if (line.startsWith(" Location:")) {
-            location = line.substring(10).trim();
-          }
-          if (line.startsWith("Position:")) {
-            role = line.substring(10).trim();
-          }
-          if (line.startsWith("Role:")) {
-            role = line.substring(5).trim();
-          }
-
-        });
-
-        console.log("param1::", location)
-
-        if (location === null || role == null) {
-          // setError("Cannot split the sentence.");
-          // res = await axios.post("/scrape/getData", {
-          //  title: role,     //searchText,
-          //  resultId: data._id,
-          //  });
+        if (keywordData.error) {
+          data.json = "Bad parameters"
         } else {
+          let body = {
+            salary: keywordData.salary_range ? keywordData.salary_range : null,
+            Industry: keywordData.Industry ? keywordData.industry : null,
+            inferred_years_experience: keywordData.experience ? keywordData.experience : (keywordData.years_of_experience ? keywordData.years_of_experience : null),
+            title: keywordData.role ? keywordData.role : (keywordData.profession ? keywordData.profession : null),
+            city: keywordData.location ? keywordData.location : null,
+            skill: keywordData.skill ? keywordData.skill.toLowerCase() : null,
+            results: results,
+            resultId: data._id
+          }
+          if (body.salary !== null) {
+            body.salary = body.salary.replace(/\s/g, '');
+            body.salary = body.salary.replace(/\$/g, "");
+          }
+          if (body.inferred_years_experience !== null) {
+            let extractedNumbers = body.inferred_years_experience.match(/\d+/);
+            body.inferred_years_experience = parseInt(extractedNumbers[0]);
+
+          }
+
+          //    const lines = keywordData.split('\n');
+          //   console.log("api retuen :: ", lines)
+
+          //     lines.forEach(line => {
+          //       if (line.startsWith(" Location:")) {
+          //        location = line.substring(10).trim();
+          //      }
+          //      if (line.startsWith("Position:")) {
+          //       role = line.substring(10).trim();
+          //     }
+          //    if (line.startsWith("Role:")) {
+          //       role = line.substring(5).trim();
+          //     }
+
+          //    });
+
+
           // let updatedSearchText = searchText.replace(`in ${location}`, '');
 
-          res = await axios.post("/scrape/getData", {
-            title: role,
-            city: location,
-            resultId: data._id,
-            results: results
-          });
+          res = await axios.post("/scrape/getData", body).then(
+            response => {
+              if (response.error) {
+                data.json = { error: "No results found" }
+              }
+            }
+          );
 
+
+          //   res = await axios.post("/scrape/getData", {
+          //     title: keyword.data,
+          //  resultId: data._id,
+          //  });
+
+          //   mutate(`/result/search/${search._id}`);
+
+          // mutate(`/search/${search._id}`);
         }
-        //   res = await axios.post("/scrape/getData", {
-        //     title: keyword.data,
-        //  resultId: data._id,
-        //  });
 
-        //   mutate(`/result/search/${search._id}`);
-
-        // mutate(`/search/${search._id}`);
       } catch (err) {
         toast.error(err);
       } finally {
@@ -122,7 +138,15 @@ export default function ResultEntry({ data, search, index, results, setValueResu
         <div className="content__container__content__entry" style={{ marginTop: '40px' }}>
           <div className="content__container__content__entry__top">
             <div className="content__container__content__entry__title">
-              Result {index + 1} - {data.json?.length} candidates
+              {data.json === 'Bad parameters' || data.json === 'No results found' ? (
+                <>  Result {index + 1} - 0 candidates </>
+
+              ) : (
+                <>
+                  Result {index + 1} - {data.json?.length} candidates
+                </>
+              )}
+
               <button
                 onClick={handleSearchInsights}
                 className="sidebar__top__delete"
@@ -140,51 +164,65 @@ export default function ResultEntry({ data, search, index, results, setValueResu
                 <div className="content__container__content__entry__status__pending">
                   Pending
                 </div>
+              ) : data.json === 'Bad parameters' ? (
+                <div className="content__container__content__entry__status__complete">
+                  Bad parameters
+                </div>
+              ) : data.json === 'No results found' ? (
+                <div className="content__container__content__entry__status__complete">
+                  No results found
+                </div>
               ) : (
                 <div className="content__container__content__entry__status__complete">
                   Completed
                 </div>
               )}
             </div>
+
             <div className="content__container__content__entry__date">
               Created on {dayjs(data.createdAt).format("DD MMM YYYY")}
             </div>
           </div>
           <div className="content__container__content__entry__bottom">
-            <Link
-              to="/details"
-              state={data}
-              disabled={processing}
-              className="content__container__content__entry__bottom__button"
-            >
-              {processing ? (
-                <LoadingSvg />
-              ) : (
-                <>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 11 13"
-                    fill="none"
-                    stroke="currentColor"
-                  >
-                    <path
-                      d="M4.17392 7.36525H7.40871M4.17392 9.52177H5.79132M1.47827 2.51308V11.1392C1.47827 11.4251 1.59187 11.6994 1.79409 11.9016C1.9963 12.1038 2.27056 12.2174 2.55653 12.2174H9.0261C9.31207 12.2174 9.58633 12.1038 9.78854 11.9016C9.99076 11.6994 10.1044 11.4251 10.1044 11.1392V4.85398C10.1043 4.71033 10.0756 4.56814 10.0199 4.43575C9.96415 4.30335 9.88253 4.18343 9.7798 4.08302L7.38606 1.74212C7.18462 1.54515 6.91409 1.43485 6.63236 1.43481H2.55653C2.27056 1.43481 1.9963 1.54842 1.79409 1.75063C1.59187 1.95284 1.47827 2.2271 1.47827 2.51308Z"
-                      strokeWidth="1.07826"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M6.86969 1.435V3.59152C6.86969 3.87749 6.98329 4.15175 7.18551 4.35397C7.38772 4.55618 7.66198 4.66978 7.94795 4.66978H10.1045"
-                      strokeWidth="1.07826"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  View Details
-                </>
-              )}
-            </Link>
+            {data.json !== 'Bad parameters' && data.json !== 'No results found' ? (
+              <Link
+                to="/details"
+                state={data}
+                disabled={processing}
+                className="content__container__content__entry__bottom__button"
+              >
+                {processing ? (
+                  <LoadingSvg />
+                ) : (
+                  <>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 11 13"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <path
+                        d="M4.17392 7.36525H7.40871M4.17392 9.52177H5.79132M1.47827 2.51308V11.1392C1.47827 11.4251 1.59187 11.6994 1.79409 11.9016C1.9963 12.1038 2.27056 12.2174 2.55653 12.2174H9.0261C9.31207 12.2174 9.58633 12.1038 9.78854 11.9016C9.99076 11.6994 10.1044 11.4251 10.1044 11.1392V4.85398C10.1043 4.71033 10.0756 4.56814 10.0199 4.43575C9.96415 4.30335 9.88253 4.18343 9.7798 4.08302L7.38606 1.74212C7.18462 1.54515 6.91409 1.43485 6.63236 1.43481H2.55653C2.27056 1.43481 1.9963 1.54842 1.79409 1.75063C1.59187 1.95284 1.47827 2.2271 1.47827 2.51308Z"
+                        strokeWidth="1.07826"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M6.86969 1.435V3.59152C6.86969 3.87749 6.98329 4.15175 7.18551 4.35397C7.38772 4.55618 7.66198 4.66978 7.94795 4.66978H10.1045"
+                        strokeWidth="1.07826"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    View Details
+                  </>
+                )}
+              </Link>
+            ) : (
+              <></>
+            )}
+
             <button
               onClick={() => setDeleteConfirmation(true)}
               disabled={processing}

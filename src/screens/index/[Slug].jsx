@@ -141,7 +141,7 @@ export default function Index() {
                     <li><div className="content__container__content__entry__title" >
                       Number of Results :
                       <span className="content__container__content__entry__status__complete">
-                        &nbsp;{itemSearchData.value.analysis["Number of candidates"]} condidates
+                        &nbsp;{itemSearchData.value.analysis["Number of candidates"]} candidates
                       </span>
 
                     </div>
