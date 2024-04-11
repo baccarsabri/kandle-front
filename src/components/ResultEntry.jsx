@@ -49,7 +49,7 @@ export default function ResultEntry({ data, search, index, results, setValueResu
             salary: keywordData.salary_range ? keywordData.salary_range : null,
             Industry: keywordData.Industry ? keywordData.industry : null,
             inferred_years_experience: keywordData.experience ? keywordData.experience : (keywordData.years_of_experience ? keywordData.years_of_experience : null),
-            title: keywordData.role ? keywordData.role : (keywordData.profession ? keywordData.profession : null),
+            title: keywordData.role ? keywordData.role : (keywordData.profession ? keywordData.profession : (keywordData.job_title ? keywordData.job_title : null)),
             city: keywordData.location ? keywordData.location : null,
             skill: keywordData.skill ? keywordData.skill.toLowerCase() : null,
             results: results,
